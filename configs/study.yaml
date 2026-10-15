@@ -1,0 +1,33 @@
+# Same model, same data, same budget -> only the fine-tuning method changes.
+# Total runtime for all runs on a Kaggle T4: roughly 2-3 hours.
+
+model:
+  name: Qwen/Qwen2.5-0.5B
+
+data:
+  dataset: fancyzhx/ag_news       # 4-class news topic classification
+  text_column: text
+  label_column: label
+  n_train: 8000
+  n_test: 2000
+  max_length: 128
+  seed: 42
+
+train:
+  epochs: 1
+  batch_size: 8
+  grad_accum: 2
+  warmup_ratio: 0.05
+  results_file: results/results.jsonl
+  keep_checkpoints: false          # set true to keep adapters / weights on disk
+
+# One entry per run. `name` must be unique. Learning rates follow common practice:
+# full FT needs a much smaller LR than adapter methods.
+runs:
+  - {name: head_only,  method: head,  lr: 1.0e-3}
+  - {name: full_ft,    method: full,  lr: 2.0e-5}
+  - {name: lora_r4,    method: lora,  lr: 2.0e-4, r: 4}
+  - {name: lora_r16,   method: lora,  lr: 2.0e-4, r: 16}
+  - {name: lora_r64,   method: lora,  lr: 1.0e-4, r: 64}
+  - {name: qlora_r16,  method: qlora, lr: 2.0e-4, r: 16}
+  - {name: qlora_r64,  method: qlora, lr: 1.0e-4, r: 64}
